@@ -1,0 +1,8 @@
+cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:qcm-fail"
+    - path: "./test"
+      component: "test:qcm-fail-tests"
+    - path: "./app"
+      component: "exe:qcm-fail"
