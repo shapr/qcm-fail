@@ -78,9 +78,13 @@ test-suite qcm-fail-tests
 
   build-depends:
     , qcm-fail
-    , hedgehog
+    , QuickCheck
+    , quickcheck-classes             >=0.6       && <0.7
+    , quickcheck-instances           <0.4
     , hspec
+    , base32string
+    , text
+    , bytestring
     , hspec-core
     , hspec-discover
     , hspec-expectations
-    , hspec-hedgehog
