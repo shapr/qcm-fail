@@ -2,6 +2,7 @@
 
 module CoreSpec where
 
+import Control.Exception
 import Control.Monad
 import qualified Data.Base32String as Base32
 import qualified Data.ByteString as B
@@ -10,21 +11,23 @@ import Data.Word (Word8)
 import Test.Hspec
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
-import qualified Test.QuickCheck.Monadic as QCM
+
+-- import qualified Test.QuickCheck.Monadic as QCM
 
 spec :: Spec
 spec =
     describe "my great test" $ do
         it "should be true" $
             True `shouldBe` True
-        it "fails the test when error is called" $
+        it "fails the test when error is called" $ -- and in fact, it does
             property $
                 forAll genStorageIndex indexIt
-
--- it "generates stuff" $
---   hedgehog $ do
---     xs <- forAll $ Gen.list (Range.linear 0 100) Gen.alpha
---     reverse (reverse xs) === xs
+        it "fails when bracket wraps the call" $
+            property $
+                forAll genStorageIndex wrapIt
+        it "testIt correct" $
+            property $
+                forAll arbitrary testIt
 
 genStorageIndex :: Gen StorageIndex
 genStorageIndex =
@@ -46,18 +49,32 @@ b32table = "abcdefghijklmnopqrstuvwxyz234567"
 b32encode :: B.ByteString -> String
 b32encode = T.unpack . Base32.toText . Base32.fromBytes b32table
 
-getIt :: String -> IO String
+getIt :: String -> IO ()
 getIt s = do
-    when (length s `mod` 2 == 1) (error "no way")
-    readFile s
+    when (length s `mod` 2 == 1) (error "don't getIt")
+    void $ readFile s
 
 indexIt :: StorageIndex -> IO ()
-indexIt s = do
+indexIt _s = do
     error "no"
 
-testIt :: String -> Property
-testIt s = do
-    monadicIO $ runna
+wrapIt :: StorageIndex -> IO ()
+wrapIt _s = do
+    withBackend (pure "whatevs") (\_ -> pure ()) indexIt
 
+testIt :: String -> Property
+testIt _s = do
+    monadicIO runna
+
+runna :: PropertyM IO Bool
 runna = do
-    run $ getIt "foo" >> pure False
+    run $ withBackend (pure "runna") (\_ -> pure ()) (\x -> getIt "foo") >> error "PLZ WORK"
+
+-- runBackend = withBackend makeBackend cleanupBackend
+-- makeStorageSpec memoryBackend cleanupMemory
+-- makeStorageSpec memoryBackend (pure ())
+withBackend :: IO b -> (b -> IO ()) -> (b -> IO ()) -> IO ()
+withBackend b cleanup action = bracket b action cleanup
+
+cleanupMemory :: (Applicative f) => p -> f ()
+cleanupMemory _ = pure ()

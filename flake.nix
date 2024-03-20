@@ -9,7 +9,7 @@
   outputs = {
     self,
     nixpkgs,
-  }: 
+  }:
     let
       forAllSystems = function:
         nixpkgs.lib.genAttrs [
@@ -19,7 +19,7 @@
           "aarch64-darwin"
         ] (system: function rec {
           inherit system;
-          compilerVersion = "ghc963";
+          compilerVersion = "ghc810";
           pkgs = nixpkgs.legacyPackages.${system};
           hsPkgs = pkgs.haskell.packages.${compilerVersion}.override {
             overrides = hfinal: hprev: {
@@ -41,7 +41,7 @@
           ];
           buildInputs = with pkgs;
             [
-              hsPkgs.haskell-language-server
+              # hsPkgs.haskell-language-server
               haskellPackages.cabal-install
               cabal2nix
               haskellPackages.ghcid
@@ -62,9 +62,9 @@
 
       # nix run
       apps = forAllSystems ({system, ...}: {
-        qcm-fail = { 
-          type = "app"; 
-          program = "${self.packages.${system}.qcm-fail}/bin/qcm-fail"; 
+        qcm-fail = {
+          type = "app";
+          program = "${self.packages.${system}.qcm-fail}/bin/qcm-fail";
         };
         default = self.apps.${system}.qcm-fail;
       });
