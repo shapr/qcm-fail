@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module CoreSpec where
 
@@ -21,13 +22,13 @@ spec =
             True `shouldBe` True
         it "fails the test when error is called" $ -- and in fact, it does
             property $
-                forAll genStorageIndex indexIt
+                forAll arbitrary (\(x :: Int) -> forAll genStorageIndex indexIt)
         it "fails when bracket wraps the call" $
             property $
-                forAll genStorageIndex wrapIt
+                forAll arbitrary (\(x :: Int) -> forAll genStorageIndex wrapIt)
         it "testIt correct" $
             property $
-                forAll arbitrary testIt
+                forAll arbitrary (\(x :: Int) -> forAll arbitrary testIt)
 
 genStorageIndex :: Gen StorageIndex
 genStorageIndex =
